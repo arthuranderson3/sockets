@@ -64,6 +64,8 @@ int main(int argc, char* argv[]) {
   }
 
   fputc('\n', stdout);
+
+  close(sock);
   return 0;
 }
 
