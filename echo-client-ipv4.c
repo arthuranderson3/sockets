@@ -7,9 +7,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#define BUFSIZE 255
-void DieWithUserMessage(char * msg, char * detail);
-void DieWithSystemMessage(char * msg);
+#include "common.h"
 
 int main(int argc, char* argv[]) {
   if (argc < 3 || argc > 4) {
@@ -20,12 +18,20 @@ int main(int argc, char* argv[]) {
   char *echoStr = argv[2];
   in_port_t servPort = (argc == 4) ? atoi(argv[3]) : 7; // 7 is well known echo port
 
+  /************************************************
+   * TCP socket creation
+   * AF_INET is IPv4
+   * SOCK_STREAM is using the stream protocol
+   * IPPROTO_TCP is TCP
+   * */
   int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (sock < 0) {
     DieWithSystemMessage("socket() failed");
   }
 
-  // construct the server address structure
+  /***********************************
+   * Prepare the server address structure
+   * */
   struct sockaddr_in servAddr;
   memset(&servAddr, 0, sizeof(servAddr));
   servAddr.sin_family = AF_INET;
@@ -35,12 +41,17 @@ int main(int argc, char* argv[]) {
   }
   servAddr.sin_port = htons(servPort);
 
+  /*************************************
+   * Establish a connection
+   * */
   if (connect(sock, (struct sockaddr*)&servAddr, sizeof(servAddr)) < 0) {
     DieWithSystemMessage("connect() failed");
   }
 
+  /***********************************
+   * Send the echo string
+   * */
   size_t echoLen = strlen(echoStr);
-
   ssize_t numBytes = send(sock, echoStr, echoLen, 0);
   if (numBytes < 0) {
     DieWithSystemMessage("send() failed");
@@ -48,6 +59,9 @@ int main(int argc, char* argv[]) {
     DieWithUserMessage("send()", "unexpected number of bytes");
   }
 
+  /***********************************
+   * Receive the echo reply
+   * */
   unsigned int totalBytesRcvd = 0;
   fputs("received: ", stdout);
   while (totalBytesRcvd < echoLen) {
@@ -65,16 +79,11 @@ int main(int argc, char* argv[]) {
 
   fputc('\n', stdout);
 
+  /**********************************
+   * Close informs the remote socket that communication
+   *   has ended and then deallocates local resources 
+   *   of socket
+   * */
   close(sock);
   return 0;
-}
-
-void DieWithUserMessage(char * msg, char * detail) {
-  printf("%s:\t%s\n", msg, detail);
-  exit(1);
-}
-
-void DieWithSystemMessage(char *msg) {
-  printf("%s\n", msg);
-  exit(2);
 }
