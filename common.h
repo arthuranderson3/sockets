@@ -6,4 +6,6 @@
 void DieWithUserMessage(char * msg, char * detail);
 void DieWithSystemMessage(char * msg);
 
+void HandleTcpClient(int clntSock);
+
 #endif

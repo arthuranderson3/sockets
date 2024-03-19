@@ -11,8 +11,6 @@
 
 static const int MAX_PENDING = 5;
 
-void HandleTcpClient(int clntSock);
-
 int main(int argc, char * argv[]) {
   if (argc != 2) {
     DieWithUserMessage("Parameters", "<Server Port>");
@@ -67,27 +65,4 @@ int main(int argc, char * argv[]) {
     HandleTcpClient(clntSock);
   }
   return 0;
-}
-
-void HandleTcpClient(int clntSock) {
-  char buffer[BUFSIZE];
-  ssize_t numBytesRcvd = recv(clntSock, buffer, BUFSIZE, 0);
-  if (numBytesRcvd < 0) {
-    DieWithSystemMessage("recv() failed");
-  }
-
-  while (numBytesRcvd > 0) {
-    ssize_t numBytesSent = send(clntSock, buffer, numBytesRcvd, 0);
-    if (numBytesSent < 0) {
-      DieWithSystemMessage("send() failed");
-    } else if (numBytesRcvd != numBytesSent) {
-      DieWithUserMessage("send()", "sent unexpected number of bytes");
-    }
-
-    numBytesRcvd = recv(clntSock, buffer, BUFSIZE, 0);
-    if (numBytesRcvd < 0) {
-      DieWithSystemMessage("recv() failed");
-    }
-  }
-  close(clntSock);
 }
